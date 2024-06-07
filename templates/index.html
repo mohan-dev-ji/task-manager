@@ -1,80 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <h1>Task Manager</h1>
-    <div class="container">
-        <div class="column" id="to-do">
-            <h2>To Do</h2>
-            <ul>
-                {% for task in tasks if task.status == 'To Do' %}
-                <li><h3>{{ task.title }}</h3>
-                <p>{{ task.description }}</p></li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="column" id="doing">
-            <h2>Doing</h2>
-            <ul>
-                {% for task in tasks if task.status == 'Doing' %}
-                <li>{{ task.title }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="column" id="done">
-            <h2>Done</h2>
-            <ul>
-                {% for task in tasks if task.status == 'Done' %}
-                <li>{{ task.title }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+<!-- templates/index.html -->
 
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
-        Add New Task
-    </button>
+{% extends "base.html" %}
 
-    <!-- Modal -->
-    <div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ url_for('add_task') }}" method="post">
-                        {{ form.hidden_tag() }}
-                        <div class="form-group">
-                            {{ form.title.label(class="form-control-label") }}
-                            {{ form.title(class="form-control") }}
-                        </div>
-                        <div class="form-group">
-                            {{ form.description.label(class="form-control-label") }}
-                            {{ form.description(class="form-control") }}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Add Task</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<!-- <h1 class="mt-4">Your Tasks</h1> -->
+
+<div class="container">
+    <div class="column" id="To-Do" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <h3>To Do</h3>
+        <ul class="list-group" id="todo-list">
+            {% for task in tasks %}
+                {% if task.status == 'To-Do' %}
+                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                        <h5>{{ task.title }}</h5>
+                        <p>{{ task.description }}</p>
+                        <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Move to Doing</button>
+                        </form>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
+            Add New Task
+          </button>
     </div>
+    <div class="column" id="Doing" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <h3>Doing</h3>
+        <ul class="list-group" id="doing-list">
+            {% for task in tasks %}
+                {% if task.status == 'Doing' %}
+                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                        <h5>{{ task.title }}</h5>
+                        <p>{{ task.description }}</p>
+                        <form action="{{ url_for('move_task', task_id=task.id, new_status='Done') }}" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Move to Done</button>
+                        </form>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="column" id="Done" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <h3>Done</h3>
+        <ul class="list-group" id="done-list">
+            {% for task in tasks %}
+                {% if task.status == 'Done' %}
+                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                        <h5>{{ task.title }}</h5>
+                        <p>{{ task.description }}</p>
+                        <form action="{{ url_for('archive_task', task_id=task.id) }}" method="post">
+                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                        </form>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Button to trigger modal -->
+<div class="add-task-btn">
+
+</div>
+
+<!-- Modal for adding new task -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('add_task') }}" method="post">
+          {{ form.hidden_tag() }}
+          <div class="form-group">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+          </div>
+          <div class="form-group">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control") }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        let dragSrcEl = null;
+
+        function handleDragStart(e) {
+            this.style.opacity = '0.4';
+            dragSrcEl = this;
+
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            e.dataTransfer.setData('task-id', this.getAttribute('data-task-id'));
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault(); // Necessary. Allows us to drop.
+            }
+
+            e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
+
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            this.classList.add('over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('over');  // this / e.target is previous target element.
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation(); // stops the browser from redirecting.
+            }
+
+            if (dragSrcEl != this) {
+                let taskId = e.dataTransfer.getData('task-id');
+                let newStatus = this.id;
+
+                fetch('/update_task_status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: taskId,
+                        status: newStatus,
+                    }),
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to update task status');
+                    }
+                });
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+            items.forEach(function (item) {
+                item.classList.remove('over');
+            });
+        }
+
+        let items = document.querySelectorAll('.list-group-item');
+        items.forEach(function(item) {
+            item.addEventListener('dragstart', handleDragStart, false);
+            item.addEventListener('dragenter', handleDragEnter, false);
+            item.addEventListener('dragover', handleDragOver, false);
+            item.addEventListener('dragleave', handleDragLeave, false);
+            item.addEventListener('drop', handleDrop, false);
+            item.addEventListener('dragend', handleDragEnd, false);
+        });
+
+        let columns = document.querySelectorAll('.column');
+        columns.forEach(function(column) {
+            column.addEventListener('dragenter', handleDragEnter, false);
+            column.addEventListener('dragover', handleDragOver, false);
+            column.addEventListener('dragleave', handleDragLeave, false);
+            column.addEventListener('drop', handleDrop, false);
+        });
+    });
+</script>
 </body>
 </html>
+
+{% endblock %}

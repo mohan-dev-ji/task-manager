@@ -10,11 +10,13 @@ body {
 }
 
 .column {
+    border: 1px solid #ccc;
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     width: 30%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #ccc;
 }
 
 h2 {
@@ -33,4 +35,16 @@ li {
     margin: 10px 0;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.add-task-btn {
+    float: left;
+    display: block;
+    margin-top: 20px; /* Adjust the margin to align the button as desired */
+    text-align: center;
+}
+
+.list-group-item {
+    cursor: grab;
+    margin-bottom: 10px;
 }

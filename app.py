@@ -1,7 +1,9 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, Task, User
-from forms import TaskForm
+from forms import TaskForm, LoginForm, RegisterForm
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 
@@ -22,7 +24,7 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def index():
-    tasks = Task.query.filter_by(user_id=current_user.id).all()
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
     form = TaskForm()
     return render_template('index.html', tasks=tasks, form=form)
 
@@ -31,13 +33,37 @@ def index():
 def add_task():
     form = TaskForm()
     if form.validate_on_submit():
-        title = form.title.data
-        description = form.description.data
-        new_task = Task(title=title, description=description, user_id=current_user.id)
+        new_task = Task(
+            title=form.title.data,
+            description=form.description.data,
+            status='To-Do',
+            user_id=current_user.id,
+            created_at=datetime.now()
+        )
         db.session.add(new_task)
         db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('index.html', tasks=Task.query.filter_by(user_id=current_user.id).all(), form=form)
+        flash('Task added successfully!', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/move_task/<int:task_id>/<string:new_status>', methods=['POST'])
+@login_required
+def move_task(task_id, new_status):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        abort(403)
+    task.status = new_status
+    db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/archive_task/<int:task_id>', methods=['POST'])
+@login_required
+def archive_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        abort(403)
+    db.session.delete(task)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 @app.route('/tasks')
 @login_required
@@ -47,35 +73,52 @@ def get_tasks():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User(username=username, email=email)
-        user.set_password(password)
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data
+        )
+        user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Registration successful!', 'success')
+        flash('Account created successfully! You can now log in.', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html')
+    return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
             login_user(user)
-            return redirect(url_for('home'))
-        flash('Login failed. Check your credentials.', 'danger')
-    return render_template('login.html')
+            return redirect(url_for('index'))
+        else:
+            flash('Login Unsuccessful. Please check email and password', 'danger')
+    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/update_task_status', methods=['POST'])
+def update_task_status():
+    data = request.get_json()
+    task_id = data['id']
+    new_status = data['status']
+
+    task = Task.query.get(task_id)
+    if task:
+        task.status = new_status
+        db.session.commit()
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False), 404
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
