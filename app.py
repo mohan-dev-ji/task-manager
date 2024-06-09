@@ -105,20 +105,38 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/update_task_status', methods=['POST'])
-def update_task_status():
-    data = request.get_json()
-    task_id = data['id']
-    new_status = data['status']
-
-    task = Task.query.get(task_id)
-    if task:
-        task.status = new_status
+@app.route('/edit_task/<int:task_id>', methods=['POST'])
+@login_required
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if request.method == 'POST':
+        task.title = request.form['title']
+        task.description = request.form['description']
         db.session.commit()
-        return jsonify(success=True)
-    else:
-        return jsonify(success=False), 404
+        return redirect(url_for('index'))
+
+
+
+# @app.route('/move_task/<int:task_id>', methods=['POST'])
+# def move_task(task_id):
+#     data = request.get_json()
+#     if data and 'status' in data:
+#         new_status = data.get('status')
+#     else:
+#         new_status = request.form.get('new_status')
     
+#     task = Task.query.get(task_id)
+#     if task:
+#         task.status = new_status
+#         db.session.commit()
+#         # Assuming you have a way to get the current user and their tasks
+#         # current_user = current_user.id  # Replace this with your method to get the current user
+#         tasks = Task.query.filter_by(user_id=current_user.id).all()
+#         return render_template('index.html', tasks=tasks)
+    
+#     return jsonify({'message': 'Task not found'}), 404
+    
+
 
 if __name__ == '__main__':
     app.run(debug=True)

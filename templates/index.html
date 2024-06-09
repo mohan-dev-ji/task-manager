@@ -4,6 +4,14 @@
 
 {% block content %}
 <!-- <h1 class="mt-4">Your Tasks</h1> -->
+ <!-- Add New Task Button -->
+ <div class="row mt-2">
+    <div class="col">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
+            Add New Task
+        </button>
+    </div>
+</div>
 
 <div class="container">
     <div class="column" id="To-Do" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
@@ -11,31 +19,55 @@
         <ul class="list-group" id="todo-list">
             {% for task in tasks %}
                 {% if task.status == 'To-Do' %}
-                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                    <li class="list-group-item">
                         <h5>{{ task.title }}</h5>
                         <p>{{ task.description }}</p>
-                        <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
-                            <button type="submit" class="btn btn-primary btn-sm">Move to Doing</button>
-                        </form>
+                        <p>Date added: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
+                                    <button type="submit" class="btn btn-primary btn-sm">Move to Doing</button>
+                                </form>
+                            </div>
+                            <div>
+                                <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
+                                    <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
+                                        Edit
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </li>
                 {% endif %}
             {% endfor %}
         </ul>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
-            Add New Task
-          </button>
     </div>
-    <div class="column" id="Doing" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+    <div class="column" id="Doing">
         <h3>Doing</h3>
         <ul class="list-group" id="doing-list">
             {% for task in tasks %}
                 {% if task.status == 'Doing' %}
-                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                    <li class="list-group-item">
                         <h5>{{ task.title }}</h5>
                         <p>{{ task.description }}</p>
-                        <form action="{{ url_for('move_task', task_id=task.id, new_status='Done') }}" method="post">
-                            <button type="submit" class="btn btn-primary btn-sm">Move to Done</button>
-                        </form>
+                        <p>Date added: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='To-Do') }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-primary btn-sm my-1">Move to To Do</button>
+                                </form>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='Done') }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-primary btn-sm">Move to Done</button>
+                                </form>
+                            </div>
+                            <div>
+                                <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
+                                    <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
+                                        Edit
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </li>
                 {% endif %}
             {% endfor %}
@@ -46,12 +78,26 @@
         <ul class="list-group" id="done-list">
             {% for task in tasks %}
                 {% if task.status == 'Done' %}
-                    <li class="list-group-item" draggable="true" data-task-id="{{ task.id }}">
+                <li class="list-group-item">
                         <h5>{{ task.title }}</h5>
                         <p>{{ task.description }}</p>
-                        <form action="{{ url_for('archive_task', task_id=task.id) }}" method="post">
-                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
-                        </form>
+                        <p>Date added: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
+                                    <button type="submit" class="btn btn-primary btn-sm my-1">Move to Doing</button>
+                                </form>
+                                <form action="{{ url_for('archive_task', task_id=task.id) }}" method="post">
+                                    <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                </form>
+                            </div>
+                            <div>
+                                <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
+                                    <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
+                                        Edit
+                                    </button>
+                                </form>
+                            </div>
                     </li>
                 {% endif %}
             {% endfor %}
@@ -59,10 +105,36 @@
     </div>
 </div>
 
-<!-- Button to trigger modal -->
-<div class="add-task-btn">
 
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" role="dialog" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm" method="post">
+                    <div class="form-group">
+                        <label for="edit-title">Title</label>
+                        <input type="text" class="form-control" id="edit-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Description</label>
+                        <textarea class="form-control" id="edit-description" name="description" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+
 
 <!-- Modal for adding new task -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
@@ -99,93 +171,27 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        let dragSrcEl = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        const editButtons = document.querySelectorAll('.edit-btn');
+        const editForm = document.getElementById('editTaskForm');
+        const editTitleInput = document.getElementById('edit-title');
+        const editDescriptionInput = document.getElementById('edit-description');
 
-        function handleDragStart(e) {
-            this.style.opacity = '0.4';
-            dragSrcEl = this;
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-id');
+                const taskTitle = this.getAttribute('data-title');
+                const taskDescription = this.getAttribute('data-description');
 
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-            e.dataTransfer.setData('task-id', this.getAttribute('data-task-id'));
-        }
-
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault(); // Necessary. Allows us to drop.
-            }
-
-            e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
-
-            return false;
-        }
-
-        function handleDragEnter(e) {
-            this.classList.add('over');
-        }
-
-        function handleDragLeave(e) {
-            this.classList.remove('over');  // this / e.target is previous target element.
-        }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation(); // stops the browser from redirecting.
-            }
-
-            if (dragSrcEl != this) {
-                let taskId = e.dataTransfer.getData('task-id');
-                let newStatus = this.id;
-
-                fetch('/update_task_status', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        id: taskId,
-                        status: newStatus,
-                    }),
-                }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Failed to update task status');
-                    }
-                });
-            }
-
-            return false;
-        }
-
-        function handleDragEnd(e) {
-            this.style.opacity = '1';
-            items.forEach(function (item) {
-                item.classList.remove('over');
+                editTitleInput.value = taskTitle;
+                editDescriptionInput.value = taskDescription;
+                editForm.action = `/edit_task/${taskId}`;
             });
-        }
-
-        let items = document.querySelectorAll('.list-group-item');
-        items.forEach(function(item) {
-            item.addEventListener('dragstart', handleDragStart, false);
-            item.addEventListener('dragenter', handleDragEnter, false);
-            item.addEventListener('dragover', handleDragOver, false);
-            item.addEventListener('dragleave', handleDragLeave, false);
-            item.addEventListener('drop', handleDrop, false);
-            item.addEventListener('dragend', handleDragEnd, false);
-        });
-
-        let columns = document.querySelectorAll('.column');
-        columns.forEach(function(column) {
-            column.addEventListener('dragenter', handleDragEnter, false);
-            column.addEventListener('dragover', handleDragOver, false);
-            column.addEventListener('dragleave', handleDragLeave, false);
-            column.addEventListener('drop', handleDrop, false);
         });
     });
 </script>
+
+    
 </body>
 </html>
 
