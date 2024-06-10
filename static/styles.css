@@ -9,16 +9,6 @@ body {
     justify-content: space-between;
 }
 
-.column {
-    border: 1px solid #ccc;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 30%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: 1px solid #ccc;
-}
-
 h2 {
     border-bottom: 2px solid #eee;
     padding-bottom: 10px;

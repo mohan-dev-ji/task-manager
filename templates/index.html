@@ -1,20 +1,10 @@
-<!-- templates/index.html -->
-
 {% extends "base.html" %}
 
 {% block content %}
-<!-- <h1 class="mt-4">Your Tasks</h1> -->
- <!-- Add New Task Button -->
- <div class="row mt-2">
-    <div class="col">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
-            Add New Task
-        </button>
-    </div>
-</div>
-
-<div class="container">
-    <div class="column" id="To-Do" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+ 
+<!-- <div class="container"> -->
+    <div class="row">
+    <div class="col-lg-4 mt-4" id="To-Do">
         <h3>To Do</h3>
         <ul class="list-group" id="todo-list">
             {% for task in tasks %}
@@ -26,10 +16,10 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
-                                    <button type="submit" class="btn btn-primary btn-sm">Move to Doing</button>
+                                    <button type="submit" class="btn btn-success btn-sm">Move to Doing</button>
                                 </form>
                             </div>
-                            <div>
+                            <div class="mt-1">
                                 <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
                                     <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
                                         Edit
@@ -41,8 +31,10 @@
                 {% endif %}
             {% endfor %}
         </ul>
+    
     </div>
-    <div class="column" id="Doing">
+
+    <div class="col-lg-4 mt-4" id="Doing">
         <h3>Doing</h3>
         <ul class="list-group" id="doing-list">
             {% for task in tasks %}
@@ -53,14 +45,14 @@
                         <p>Date added: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                         <div class="d-flex justify-content-between">
                             <div>
-                                <form action="{{ url_for('move_task', task_id=task.id, new_status='To-Do') }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-primary btn-sm my-1">Move to To Do</button>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='To-Do') }}" method="post">
+                                    <button type="submit" class="btn btn-warning btn-sm my-1">Move to To Do</button>
                                 </form>
-                                <form action="{{ url_for('move_task', task_id=task.id, new_status='Done') }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-primary btn-sm">Move to Done</button>
+                                <form action="{{ url_for('move_task', task_id=task.id, new_status='Done') }}" method="post">
+                                    <button type="submit" class="btn btn-danger btn-sm">Move to Done</button>
                                 </form>
                             </div>
-                            <div>
+                            <div class="mt-1">
                                 <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
                                     <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
                                         Edit
@@ -73,7 +65,7 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="column" id="Done" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+    <div class="col-lg-4 mt-4" id="Done">
         <h3>Done</h3>
         <ul class="list-group" id="done-list">
             {% for task in tasks %}
@@ -85,13 +77,13 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <form action="{{ url_for('move_task', task_id=task.id, new_status='Doing') }}" method="post">
-                                    <button type="submit" class="btn btn-primary btn-sm my-1">Move to Doing</button>
+                                    <button type="submit" class="btn btn-success btn-sm my-1">Move to Doing</button>
                                 </form>
                                 <form action="{{ url_for('archive_task', task_id=task.id) }}" method="post">
                                     <button type="submit" class="btn btn-danger btn-sm">Archive</button>
                                 </form>
                             </div>
-                            <div>
+                            <div class="mt-1">
                                 <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" class="d-inline">
                                     <button type="button" class="btn btn-secondary btn-sm edit-btn" data-id="{{ task.id }}" data-title="{{ task.title }}" data-description="{{ task.description }}" data-toggle="modal" data-target="#editTaskModal">
                                         Edit
@@ -103,19 +95,24 @@
             {% endfor %}
         </ul>
     </div>
+
+    <!-- Add New Task Button -->
+    <div class="container">
+        <div class="row my-3 ml-0">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
+                Add New Task
+            </button>
+        </div>
+    </div>
 </div>
-
-
+<!-- </div> -->
 
 <!-- Edit Task Modal -->
 <div class="modal fade" id="editTaskModal" tabindex="-1" role="dialog" aria-labelledby="editTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
+        <div class="modal-content my-5">
             <div class="modal-header">
                 <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body">
                 <form id="editTaskForm" method="post">
@@ -127,14 +124,16 @@
                         <label for="edit-description">Description</label>
                         <textarea class="form-control" id="edit-description" name="description" required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <!-- <button type="submit" class="btn btn-primary">Save Changes</button> -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
-
 
 <!-- Modal for adding new task -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
@@ -142,9 +141,6 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
         <form action="{{ url_for('add_task') }}" method="post">
@@ -153,7 +149,7 @@
             {{ form.title.label(class="form-label") }}
             {{ form.title(class="form-control") }}
           </div>
-          <div class="form-group">
+          <div class="form-group my-3">
             {{ form.description.label(class="form-label") }}
             {{ form.description(class="form-control") }}
           </div>
@@ -168,7 +164,7 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
