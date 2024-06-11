@@ -14,6 +14,9 @@ app.config['SECRET_KEY'] = 'rdtuyne56bube56unr65unr56'
 
 # Initialize the database with the Flask app
 db.init_app(app)
+with app.app_context():
+    db.create_all()
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -96,7 +99,7 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
         else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+            return redirect(url_for('register'))
     return render_template('login.html', form=form)
 
 @app.route('/logout')
@@ -114,29 +117,6 @@ def edit_task(task_id):
         task.description = request.form['description']
         db.session.commit()
         return redirect(url_for('index'))
-
-
-
-# @app.route('/move_task/<int:task_id>', methods=['POST'])
-# def move_task(task_id):
-#     data = request.get_json()
-#     if data and 'status' in data:
-#         new_status = data.get('status')
-#     else:
-#         new_status = request.form.get('new_status')
-    
-#     task = Task.query.get(task_id)
-#     if task:
-#         task.status = new_status
-#         db.session.commit()
-#         # Assuming you have a way to get the current user and their tasks
-#         # current_user = current_user.id  # Replace this with your method to get the current user
-#         tasks = Task.query.filter_by(user_id=current_user.id).all()
-#         return render_template('index.html', tasks=tasks)
-    
-#     return jsonify({'message': 'Task not found'}), 404
-    
-
 
 if __name__ == '__main__':
     app.run(debug=True)
